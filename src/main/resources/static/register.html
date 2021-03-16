@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>regist</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+	</head>
+	<body>
+		<div id="wrap">
+			<div id="top_content">
+					<div id="header">
+						<div id="rightheader">
+							<p>
+								2009/11/20
+								<br />
+							</p>
+						</div>
+						<div id="topheader">
+							<h1 id="title">
+								<a href="#">main</a>
+							</h1>
+						</div>
+						<div id="navigation">
+						</div>
+					</div>
+				<div id="content">
+					<p id="whereami">
+					</p>
+					<h1>
+						注册
+					</h1>
+					<form action="login.html" method="post">
+						<table cellpadding="0" cellspacing="0" border="0"
+							class="form_table">
+							<tr>
+								<td valign="middle" align="right">
+									用户名:
+								</td>
+								<td valign="middle" align="left">
+									<input type="text" class="inputgri" v-model="user.username" />
+								</td>
+							</tr>
+							<tr>
+								<td valign="middle" align="right">
+									真实姓名:
+								</td>
+								<td valign="middle" align="left">
+									<input type="text" class="inputgri" v-model="user.realname" />
+								</td>
+							</tr>
+							<tr>
+								<td valign="middle" align="right">
+									密码:
+								</td>
+								<td valign="middle" align="left">
+									<input type="password" class="inputgri" v-model="user.password" />
+								</td>
+							</tr>
+							<tr>
+								<td valign="middle" align="right">
+									性别:
+								</td>
+								<td valign="middle" align="left">
+									男
+									<input type="radio" class="inputgri" v-model="user.sex" value="男" checked="checked"/>
+									女
+									<input type="radio" class="inputgri" v-model="user.sex" value="女"/>
+								</td>
+							</tr>
+							
+							<tr>
+								<td valign="middle" align="right">
+									验证码:
+									<img id="num" :src="url" />
+									<a href="javascript:;" @click="updateImage">换一张</a>
+								</td>
+								<td valign="middle" align="left">
+									<input type="text" class="inputgri" v-model="code" />
+								</td>
+							</tr>
+						</table>
+						<p>
+							<input type="button" @click="register" class="button" value="提交 &raquo;" />
+						</p>
+					</form>
+				</div>
+			</div>
+			<div id="footer">
+				<div id="footer_bg">
+				ABC@126.com
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+
+<!--导入js文件 这样就可以玩Vue了 还有发射axios异步请求了
+这些文件都是放在resources目录下的static文件夹中 所以可以直接通过浏览器进行访问
+但是我们设置了项目的前缀路径为ems_vue 则变成了域名/ems_vue 下js文件夹下的vue.js文件
+最终通过src 将这个组件给导入进去-->
+<script src = "http://localhost:8989/ems_vue/js/vue.js"></script>
+<script src = "http://localhost:8989/ems_vue/js/axios.min.js"></script>
+
+<!--再重新搞一个JavaScript标签 作为操作Vue的代码-->
+<script>
+	var app = new Vue({
+		//#表示为id选择器 操作id为wrap的标签块
+		el : "#wrap",
+		//用于双向绑定的data数据  标签的地方通过加上冒号 来交给Vue管理 就可以实现双向同步
+		data : {
+			url:"",
+			user:{
+				sex:"男"
+			},
+			code:""
+		},
+		//在Vue中自定义方法都是放在methods 或者是单个方法method
+		methods:{
+			//更换验证码图片
+			updateImage(){
+				this.getImage()
+			},
+			//获取验证码图片
+			getImage(){
+				//拿到当前的this关键字 这样似乎辨识度更加的高 因为异步请求函数是一个函数体 这里需要记录一下this 但是貌似不加的话 也没事
+				var _this = this;
+				//在前后端分离项目中 要将域名和访问路径都要写全
+				axios.get("http://localhost:8989/ems_vue/user/getImage?time="+Math.random()).then(res=>{
+					_this.url = res.data;
+				});
+			},
+			//用户注册
+			register(){
+				//这里使用post请求 验证码是单个 不放进请求体 直接在url后面以get方式拼接即可 然后User相关的 再搞成实体类
+				axios.post("http://localhost:8989/ems_vue/user/register?code="+this.code,this.user).then(res=>{
+					console.log(res.data);
+					if(res.data.state){
+						alert(res.data.msg + ",点击确定跳转至登录页面");
+						location.href = "http://localhost:8989/ems_vue/login.html";
+					}else{
+						alert(res.data.msg);
+					}
+				});
+			}
+		},
+		//属于Vue自带的钩子函数 不能够放进methods自定义模块中 切记 切记 就好比是static类成员一样 显示初始化用的
+		created(){
+			this.getImage()
+		}
+	})
+</script>
+
